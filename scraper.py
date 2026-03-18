@@ -117,6 +117,3 @@ def _normalize(raw):
             "url":          f"https://qasa.se/se/home/{listings_id}",
             # URL pattern found by visiting any listing on qasa and reading the browser URL.
         }
-
-
-
