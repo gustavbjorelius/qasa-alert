@@ -84,7 +84,7 @@ def save_seen_ids(ids):
 # `not in` on a set is O(1) - fast.
 # This is the core of the deduplication logic.
 # ================================================================================
-def find_new_listing(listings, seen_ids):
+def find_new_listings(listings, seen_ids):
     return [listing for listing in listings if listing["id"] not in seen_ids]
 
 # ================================================================================
