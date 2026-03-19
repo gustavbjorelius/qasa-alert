@@ -41,5 +41,5 @@ SMTP_EMAIL       = _require("ALERT_EMAIL")
 
 # Max cost filter. The API already filters this server-side,
 # but we re-check locally in filters.py as a safety net.
-FILTER_MAX_COUNT = 8900 
+FILTER_MAX_COST = 8900 
 
