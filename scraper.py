@@ -11,7 +11,7 @@ import logging
 import requests
 from config import QASA_API_URL
 
-logger.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 HEADERS = {
         "User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -26,7 +26,7 @@ HEADERS = {
 # id            -> to build the URL and track seen listings in state.py
 # furnished     -> to double-check the filter locally in filters.py
 # shared        -> to double-check the filter locally in filters.py
-# monthlyCost   -> to ...
+# monthly_cost   -> to ...
 # We do NOT request: location, uploads, squareMeters, etc
 GRAPHQL_QUERY = """
 query HomeSearch($order: HomeIndexSearchOrderInput, $offset: Int, $limit: Int, $params: HomeSearchParamsInput) {
@@ -36,7 +36,7 @@ query HomeSearch($order: HomeIndexSearchOrderInput, $offset: Int, $limit: Int, $
                 id
                 furnished
                 shared
-                monthlyCost
+                monthly_cost
             }
         }
     }
@@ -53,11 +53,11 @@ GRAPHQL_VARIABLES = {
         "limit": 100,
         "offset": 0,
         "order": {
-            "direction": "decending",
+            "direction": "decsending",
             "orderBy":   "published_or_bumped_at",
         },
         "params": {
-            "furnishure":           True,
+            "furniture":           True,
             "shared":               False,
             "maxMonthlyCost":       8900,
             "currency":             "SEK",
@@ -77,7 +77,7 @@ def fetch_listings():
                 json={
                     "operationName":    "HomeSearch",
                     "query":            GRAPHQL_QUERY,
-                    "variable":         GRAPHQL_VARIABLES,
+                    "variables":         GRAPHQL_VARIABLES,
                 },
                 timeout=15,
             )
@@ -93,7 +93,7 @@ def fetch_listings():
                 .get("nodes",[])
             )
 
-        return [_normalized(node) for node in nodes]
+        return [_normalize(node) for node in nodes]
 
     except requests.HTTPError as e:
         logger.error("HTTP error: %s", e)
@@ -108,12 +108,12 @@ def _normalize(raw):
     # Converts one raw API node into a flat dict with only what we need. 
     # str(id) because IDs from APIs are sometimes ints - always store as string
     # for consistent comparison in state.py.
-    listings_id = str(raw.get("id", ""))
+    listing_id = str(raw.get("id", ""))
     return {
-            "id":           listings_id,
+            "id":           listing_id,
             "furnished":    bool(raw.get("furnished")),
             "shared":       bool(raw.get("shared")),
             "monthlyCost":  int(raw.get("monthlyCost") or 0),
-            "url":          f"https://qasa.se/se/home/{listings_id}",
+            "url":          f"https://qasa.se/se/home/{listing_id}",
             # URL pattern found by visiting any listing on qasa and reading the browser URL.
         }

@@ -42,10 +42,10 @@ from notifier   import send_alert
 #   %(message)s     = whatever you passed to logger.info("...")
 logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s %(levelname)-8s %(messages)s",
+        format="%(asctime)s %(levelname)-8s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-logger = logger.getLogger(__name__)
+logger = logging.getLogger(__name__)
 # __name__ here equals "main". Creates a logger names "main".
 # logger.info("...") prints: "2026-03-01 12:00:01  INFO    ..."
 
@@ -81,7 +81,7 @@ def poll(dry_run=False):
     # In GitHub Actions: poll.yml restored seen_ids.json from cashe before this ran. 
 
     # STEP 4: find whats new
-    new_listing = find_new_listings(matching, seen_ids)
+    new_listings = find_new_listings(matching, seen_ids)
     # Compares each listing's "id" against seen_ids.
     # Returns only listings whose ID is NOT in seen_ids.
     logger.info("%d are new", len(new_listings))
@@ -100,7 +100,7 @@ def poll(dry_run=False):
 
     else:
         # STEP 5: send email
-        send_alert(new_listing)
+        send_alert(new_listings)
         # connects to smtp.google.com, sends one email with all new listings.
 
         # STEPS 6 + 7: update and save state
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # ArgumentParser reads sys.argv - the list of words you typed after "python main.py"
 
-    parser.add("--dry-run", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
     # Registers --dry-run as a valid flag.
     # action="store_true" means:
     #   --dry-run present -> arg.dry_run = True
