@@ -20,22 +20,22 @@ def send_alert(new_listing):
     # One URL per line. That's the whole email.
     count = len(new_listing)
     lines = [f"{count} new match{'ar' if count > 1 else ''} on Qasa I Haninge:\n"]
-    for listing in new_listings:
+    for listing in new_listing:
         lines.append(listing["url"])
-        body = "\n".join(lines)
+    body = "\n".join(lines)
 
-        msg = MIMEText(body, "plain", "utf-8")
-        msg["Subject"]  = f"Qasa: {count} new match in Haninge"
-        msg["From"]     = SMTP_USER
-        msg["To"]       = ALERT_EMAIL
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"]  = f"Qasa: {count} new match in Haninge"
+    msg["From"]     = SMTP_USER
+    msg["To"]       = ALERT_EMAIL
 
-        try:
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-                server.startlts()   # encrypt before sending password 
-                server.login(SMTP_USER, SMTP_PASS)
-                server.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
-                logger.info("Alert sent: %d listings", count)
-            except smtplib.SMTPAuthenticationError:
-                logger.error("Auth failed - check SMTP_USER and SMTP_PASS")
-            except smtplib.SMTPException as e:
-                logger.error("SMTP error: %s, e)
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()   # encrypt before sending password 
+            server.login(SMTP_USER, SMTP_PASS)
+            server.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
+        logger.info("Alert sent: %d listings", count)
+    except smtplib.SMTPAuthenticationError:
+        logger.error("Auth failed - check SMTP_USER and SMTP_PASS")
+    except smtplib.SMTPException as e:
+        logger.error("SMTP error: %s", e)

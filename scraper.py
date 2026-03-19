@@ -81,28 +81,28 @@ def fetch_listings():
                 },
                 timeout=15,
             )
-            response.raise_for_status()
-            data = response.json()
+        response.raise_for_status()
+        data = response.json()
 
-            # Path comes from the JSON response structure: data -> homeIndexSearch -> documents -> nodes
-            nodes = (
-                    data
-                    .get("data",{})
-                    .get("homeIndexSearch",{})
-                    .get("documents",{})
-                    .get("nodes",[])
-                )
+        # Path comes from the JSON response structure: data -> homeIndexSearch -> documents -> nodes
+        nodes = (
+                data
+                .get("data",{})
+                .get("homeIndexSearch",{})
+                .get("documents",{})
+                .get("nodes",[])
+            )
 
-            return [_normalized(node) for node in nodes]
+        return [_normalized(node) for node in nodes]
 
-        except requests.HTTPError as e:
-            logger.error("HTTP error: %s", e)
-        except requests.ConnectionError:
-            logger.error("No connecion to %s", QASA_API_URL)
-        except (KeyError, ValueError) as e:
-            logger.error("Unexpected response shape: %s", e)
+    except requests.HTTPError as e:
+        logger.error("HTTP error: %s", e)
+    except requests.ConnectionError:
+        logger.error("No connecion to %s", QASA_API_URL)
+    except (KeyError, ValueError) as e:
+        logger.error("Unexpected response shape: %s", e)
 
-        return []
+    return []
 
 def _normalize(raw):
     # Converts one raw API node into a flat dict with only what we need. 

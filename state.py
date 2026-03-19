@@ -54,10 +54,10 @@ def load_seen_ids():
         with open(STATE_FILE, "r") as f:
             data = json.load(f)     # reads the file, parses JSON -> Python list
             return set(data)        # convert list to set for fast lookup
-        except (json.JSONDecodeError, TypeError) as e:
-            # File exists but is corrupted or empty. Start fresh rather than craching
-            logger.warning("Could not read file, start fresh: %s", e)
-            return set()
+    except (json.JSONDecodeError, TypeError) as e:
+        # File exists but is corrupted or empty. Start fresh rather than craching
+        logger.warning("Could not read file, start fresh: %s", e)
+        return set()
 
 # ================================================================================
 # save_seen_ids(ids)
