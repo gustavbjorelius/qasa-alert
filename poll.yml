@@ -1,0 +1,72 @@
+
+# .github/workflows/poll.yml
+#
+# PURPOSE: Tell GitHub's servers to run our script on a schedule.
+# This file is the entire "daemon"  no server needed on your end.
+#
+# HOW GITHUB ACTIONS WORKS:
+#   - GitHub reads this file from your repo
+#   - The 'schedule' trigger fires at the cron interval
+#   - GitHub spins up a fresh Ubuntu machine in the cloud
+#   - It runs the 'steps' in order, then shuts down
+#   - Your laptop being off doesn't matter at all
+#
+# CRON SYNTAX: '*/15 * * * *'
+#   Fields: minute hour day month weekday
+#   */15 = "every 15 minutes"
+#   * = "any value" for the rest
+#   NOTE: GitHub Actions minimum interval is 5 minutes.
+#   Also note: GitHub doesn't guarantee exact timing  could be a few minutes late.
+#
+# SECRETS: Values like SMTP_PASS never appear in this file.
+#   They live in GitHub  repo  Settings  Secrets and variables  Actions.
+#   Set them with: gh secret set SECRET_NAME --body "value"
+#   GitHub injects them as environment variables before running the script.
+#   config.py reads them with os.getenv()  works identically to .env.
+#
+# STATE PROBLEM: Each run gets a FRESH machine. seen_ids.json does NOT persist.
+#   This means every run would think every listing is new  spam.
+#   SOLUTION: We use GitHub's cache action to save/restore seen_ids.json
+#   between runs. The cache key uses the date so it resets monthly (optional).
+name: Poll Qasa listings
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # every 15 minutes
+  workflow_dispatch:           # adds a "Run workflow" button in GitHub UI for manual testing
+jobs:
+  poll:
+    runs-on: ubuntu-latest    # GitHub provides this machine for free
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        # Clones your repo onto the temporary machine
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Restore seen_ids cache
+        uses: actions/cache@v4
+        with:
+          path: seen_ids.json
+          key: seen-ids-${{ github.run_id }}         # unique key for this run
+          restore-keys: seen-ids-                    # restores latest matching cache
+        # WHY: Without this, every run starts fresh and emails ALL listings every time.
+        # The cache action saves seen_ids.json after the run and restores it next run.
+      - name: Run poll
+        env:
+          # Inject secrets as environment variables.
+          # ${{ secrets.X }} reads from GitHub's encrypted secret vault.
+          # os.getenv() in config.py picks these up  no .env file needed.
+          SMTP_USER:   ${{ secrets.SMTP_USER }}
+          SMTP_PASS:   ${{ secrets.SMTP_PASS }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+        run: python main.py --once
+      - name: Save seen_ids cache
+        uses: actions/cache/save@v4
+        if: always()    # save even if the poll step failed
+        with:
+          path: seen_ids.json
+          key: seen-ids-${{ github.run_id }}
+
