@@ -96,7 +96,7 @@ def poll(dry_run=False):
     if dry_run:
         # Just print what we WOULD have emailed. No side effects.
         for listing in new_listings:
-            logger.info("   [DRY RUN] %s | %s sek/month" listing["url"], listing["monthly_cost"])
+            logger.info("   [DRY RUN] %s | %s sek/month", listing["url"], listing["monthly_cost"])
 
     else:
         # STEP 5: send email
